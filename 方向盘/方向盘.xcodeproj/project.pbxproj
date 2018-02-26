@@ -16,6 +16,8 @@
 		82A5BC0C2040F43000FBD3E4 /* ___Tests.m in Sources */ = {isa = PBXBuildFile; fileRef = 82A5BC0B2040F43000FBD3E4 /* ___Tests.m */; };
 		82A5BC172040F43100FBD3E4 /* ___UITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 82A5BC162040F43000FBD3E4 /* ___UITests.m */; };
 		82A5BC252040F45B00FBD3E4 /* timg.png in Resources */ = {isa = PBXBuildFile; fileRef = 82A5BC242040F45A00FBD3E4 /* timg.png */; };
+		82A5BC282043B86400FBD3E4 /* 前进.png in Resources */ = {isa = PBXBuildFile; fileRef = 82A5BC262043B86300FBD3E4 /* 前进.png */; };
+		82A5BC292043B86400FBD3E4 /* 后退.png in Resources */ = {isa = PBXBuildFile; fileRef = 82A5BC272043B86300FBD3E4 /* 后退.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -53,6 +55,8 @@
 		82A5BC162040F43000FBD3E4 /* ___UITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "___UITests.m"; sourceTree = "<group>"; };
 		82A5BC182040F43100FBD3E4 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		82A5BC242040F45A00FBD3E4 /* timg.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = timg.png; sourceTree = "<group>"; };
+		82A5BC262043B86300FBD3E4 /* 前进.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "前进.png"; sourceTree = "<group>"; };
+		82A5BC272043B86300FBD3E4 /* 后退.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "后退.png"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -108,6 +112,8 @@
 				82A5BBF52040F42E00FBD3E4 /* ViewController.h */,
 				82A5BBF62040F42F00FBD3E4 /* ViewController.m */,
 				82A5BC242040F45A00FBD3E4 /* timg.png */,
+				82A5BC272043B86300FBD3E4 /* 后退.png */,
+				82A5BC262043B86300FBD3E4 /* 前进.png */,
 				82A5BBF82040F42F00FBD3E4 /* Main.storyboard */,
 				82A5BBFB2040F42F00FBD3E4 /* Assets.xcassets */,
 				82A5BBFD2040F42F00FBD3E4 /* LaunchScreen.storyboard */,
@@ -241,6 +247,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				82A5BC282043B86400FBD3E4 /* 前进.png in Resources */,
+				82A5BC292043B86400FBD3E4 /* 后退.png in Resources */,
 				82A5BC252040F45B00FBD3E4 /* timg.png in Resources */,
 				82A5BBFF2040F42F00FBD3E4 /* LaunchScreen.storyboard in Resources */,
 				82A5BBFC2040F42F00FBD3E4 /* Assets.xcassets in Resources */,
@@ -441,7 +449,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.heaton.bluelight.---";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Debug;
 		};
@@ -456,7 +464,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.heaton.bluelight.---";
 				PRODUCT_NAME = "$(TARGET_NAME)";
-				TARGETED_DEVICE_FAMILY = "1,2";
+				TARGETED_DEVICE_FAMILY = 1;
 			};
 			name = Release;
 		};
