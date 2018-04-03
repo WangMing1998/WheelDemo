@@ -5,282 +5,134 @@
 //  Created by Heaton on 2018/2/24.
 //  Copyright © 2018年 WangMingDeveloper. All rights reserved.
 //
-
+#define ToRad(deg)         ( (M_PI * (deg)) / 180.0 )
+#define ToDeg(rad)        ( (180.0 * (rad)) / M_PI )
+#define SQR(x)            ( (x) * (x) )
 #import "ViewController.h"
 
 @interface ViewController ()
 @property(nonatomic,strong) UIImageView *rotationImageView;
-@property(nonatomic,strong) UIImageView *speedImageView;// 速度转盘指针
-@property(nonatomic,strong) UIImageView *fuelImageView;// 油量转盘指针
-@property(nonatomic,strong) UIImageView *rpmImageView;// 转速转盘指针
-@property(nonatomic,strong) UIButton *forwordButton;
-@property(nonatomic,strong) UIButton *backwordButton;
+@property(nonatomic) CGFloat lastRotation;
+@property(nonatomic,strong) UIRotationGestureRecognizer *rotationGest;
+// 滑帽初始化位置
+@property(nonatomic,assign) int angle;
+@property(nonatomic,assign) CGFloat addAngle;
 
-@property(nonatomic,strong) NSTimer *fuelTimerCount;
-@property(nonatomic,strong) NSTimer *speedTimerCount;
-@property(nonatomic,strong) NSTimer *speedMixTimerCount;
-@property(nonatomic,assign) NSInteger fuelCount;
-@property(nonatomic,assign) NSInteger speedCount;
+@property(nonatomic,assign) CGPoint centerPoint;
+@property(nonatomic,assign) CGPoint startPoint;
+@property(nonatomic,assign) CGFloat deta_degree;
+@property(nonatomic,assign) CGFloat tempAngle;
+@property(nonatomic,assign) CGFloat startAngle;
 @end
 
 @implementation ViewController
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    // 方向盘
     self.rotationImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"timg"]];
-    CGFloat height = 300;
-    CGFloat width = 300;
-    CGFloat x = 20;
-    CGFloat y = self.view.frame.size.height  - height;
-    self.rotationImageView.frame = CGRectMake(x,y,width,height);
+    self.rotationImageView.frame = CGRectMake(0,0,300,300);
+    self.rotationImageView.center = self.view.center;
     self.rotationImageView.userInteractionEnabled = YES;
     [self.view addSubview:self.rotationImageView];
+    // test code
+    self.rotationImageView.transform = CGAffineTransformRotate(self.rotationImageView.transform, ToRad(0));
+    CGAffineTransform _trans = self.rotationImageView.transform;
+    CGFloat rotate = acosf(_trans.a)+acosf(_trans.b);
+    CGFloat angle = ToDeg(rotate);
+    NSLog(@"旋转了%.2f度",angle);
     
-    // 前进后退
-    CGFloat btnX = CGRectGetMaxX(self.rotationImageView.frame)+100;
-    CGFloat btnW = width * 0.4;
-    CGFloat btnH =  btnW * 0.488;
-    CGFloat btnY = self.view.frame.size.height - btnH - 20;
-    
-    self.forwordButton = [[UIButton alloc] initWithFrame:CGRectMake(btnX,btnY,btnW,btnH)];
-    [self.forwordButton setBackgroundImage:[UIImage imageNamed:@"前进"] forState:UIControlStateNormal];
-    [self.forwordButton addTarget:self action:@selector(forwordBtnTouchDown:) forControlEvents:UIControlEventTouchDown];
-     [self.forwordButton addTarget:self action:@selector(forwordBtnTouchUp:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:self.forwordButton];
-    
-    self.backwordButton = [[UIButton alloc] initWithFrame:CGRectMake(CGRectGetMaxX(self.forwordButton.frame)+20,btnY,btnW,btnH)];
-    [self.backwordButton setBackgroundImage:[UIImage imageNamed:@"后退"] forState:UIControlStateNormal];
-    [self.backwordButton addTarget:self action:@selector(backwordBtnTouchDown:) forControlEvents:UIControlEventTouchDown];
-    [self.backwordButton addTarget:self action:@selector(backwordBtnTouchUp:) forControlEvents:UIControlEventTouchUpInside];
-    [self.view addSubview:self.backwordButton];
-    
-    
-    //仪表盘
-    UIView *dashboardView = [[UIView alloc] initWithFrame:CGRectMake(btnX,40,self.view.frame.size.width - btnX-20,200)];
-//    dashboardView.backgroundColor = [UIColor yellowColor];
-    [self.view addSubview:dashboardView];
-    
-    CGFloat speedWidth = dashboardView.frame.size.width * 0.4;
-    CGFloat speedHeigth = speedWidth;
-    UIImageView *speedImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"SpeedoMeter"]];
-    speedImageView.frame = CGRectMake((dashboardView.frame.size.width - speedWidth)/2,(dashboardView.frame.size.height-speedHeigth)/2,speedWidth,speedHeigth);
-    [dashboardView addSubview:speedImageView];
-    
-    self.speedImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Needle"]];
-    self.speedImageView.frame = CGRectMake(0,0,speedWidth * 0.104,speedHeigth*0.9011);
-    CGPoint center = speedImageView.center;
-    center.y = center.y;
-    self.speedImageView.center = center;
-    [dashboardView addSubview:self.speedImageView];
-    
-    UIImageView *center1 = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Center"]];
-    center1.frame = CGRectMake(0,0,26,26);
-    center1.center = center;
-    [dashboardView addSubview:center1];
-    
-    
-    CGFloat rpmWidth = speedWidth * 0.70;
-    CGFloat rpmHeight = rpmWidth;
-    
-    
-    UIImageView *rpmImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"RpmMeter"]];
-    rpmImageView.frame = CGRectMake(0,(dashboardView.frame.size.height-rpmHeight)/2,rpmWidth,rpmHeight);
-    [dashboardView addSubview:rpmImageView];
-    
-    
-    self.rpmImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Needle"]];
-    self.rpmImageView.frame = CGRectMake(0,0,rpmWidth * 0.066,rpmHeight * 0.577);
-    CGPoint rpmCenter = rpmImageView .center;
-    rpmCenter.y = rpmCenter.y;
-    self.rpmImageView.center = rpmCenter;
-    [dashboardView addSubview:self.rpmImageView ];
-    
-    UIImageView *center2 = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Center"]];
-    center2.frame = CGRectMake(0,0,10,10);
-    center2.center = rpmCenter;
-    [dashboardView addSubview:center2];
-    
-    
-    
-    UIImageView *fuel = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"FualMeter"]];
-    fuel.frame = CGRectMake(CGRectGetMaxX(speedImageView.frame)-10,(dashboardView.frame.size.height-rpmHeight)/2,rpmWidth,rpmHeight);
-    [dashboardView addSubview:fuel];
-    
-    
-    self.fuelImageView = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Needle"]];
-    self.fuelImageView.frame = CGRectMake(0,0,rpmWidth * 0.066,rpmHeight * 0.577);
-    CGPoint fuelCenter = fuel.center;
-    fuelCenter.y = fuelCenter.y;
-    fuelCenter.x = fuelCenter.x - 10;
-    self.fuelImageView.center = fuelCenter;
-    [dashboardView addSubview:self.fuelImageView ];
-    
-    UIImageView *center3 = [[UIImageView alloc] initWithImage:[UIImage imageNamed:@"Center"]];
-    center3.frame = CGRectMake(0,0,10,10);
-    center3.center = fuelCenter;
-    [dashboardView addSubview:center3];
-    
-    [self rotateSpeedoMeterNeedle:-127];
-    [self rotateRPMNeedle:-145];
-    [self rotateFuelNeedle:150];
-
-    self.fuelCount = 25;
-    self.speedCount = -127;
-    [self startFuelTimer];
+    // 设置中心点
+    self.centerPoint = self.rotationImageView.center;
+    NSLog(@"centerX:%.2f------centerY:%.2f",self.centerPoint.x,self.centerPoint.y);
+    self.addAngle = 0;
+//
+//    UIPanGestureRecognizer *pansGesture = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(handlePans:)];
+//    [pansGesture setMaximumNumberOfTouches:1];
+//
+//    [self.rotationImageView addGestureRecognizer:pansGesture];
 }
 
--(void)forwordBtnTouchDown:(UIButton *)sender{
-    NSLog(@"按下来了");
-    self.backwordButton.enabled = NO;
-    [self startAddSpeedTimer];
-}
-
--(void)forwordBtnTouchUp:(UIButton *)sender{
-    NSLog(@"松开手了");
-    [self.speedTimerCount invalidate];
-    self.speedTimerCount = nil;
-    [UIView animateWithDuration:3 animations:^{
-        [self rotateSpeedoMeterNeedle:-127];
-    }];
-    self.backwordButton.enabled = YES;
-}
+//- (void)handlePans:(UIPanGestureRecognizer *)sender
+//{
+//    CGPoint translationPoint = [sender velocityInView:self.view];
+//    self.rotationImageView.transform = CGAffineTransformMakeRotation(sender.view.center.x+translationPoint.x);
+//}
 
 
--(void)backwordBtnTouchDown:(UIButton *)sender{
-    NSLog(@"按下来了");
-    [self startMixSpeedTimer];
-    self.forwordButton.enabled = NO;
+-(void)touchesBegan:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
+    UITouch *touch = [touches anyObject];
+    if (![touch.view isEqual:self.rotationImageView]) {
+        return;
+    }
+    CGPoint currentPoint = [touch locationInView:self.view];//当前手指的坐标
+    self.startPoint = currentPoint;
+    self.startAngle = [self detaDegreeWithX:self.centerPoint.x Y:self.centerPoint.y targetX:self.startPoint.x targetY:self.startPoint.y];
+    self.tempAngle = self.startAngle;
+    self.addAngle = 0;
+    NSLog(@"开始角度%.2f",self.startAngle);
 }
 
--(void)backwordBtnTouchUp:(UIButton *)sender{
-    NSLog(@"松开手了");
-    self.forwordButton.enabled = YES;
-}
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    //self.tranformView，你想旋转的视图
-    if (![touch.view isEqual:self.rotationImageView]) {
+
+    CGPoint endPoint = [touch locationInView:self.view];
+    // 根据触摸位置计算角度
+    CGFloat angle = [self detaDegreeWithX:self.centerPoint.x Y:self.centerPoint.y targetX:endPoint.x targetY:endPoint.y];
+    
+    CGFloat deteAngle = angle - self.tempAngle;
+    self.tempAngle = angle;
+    NSLog(@"当前角度:%.2f---偏移角度:%.2f",self.addAngle,deteAngle);
+    //当手指转了一圈回到原点，角度变化值为360，直接不作任何操作，下一次进入已经过了临界点再执行动画，角度变化就是渐变的，此处跳变不需要进行动画转到极限位置
+    if (deteAngle <= -270 || deteAngle >= 270) {
+
         return;
     }
-    NSUInteger toucheNum = [[event allTouches] count];//有几个手指触摸屏幕
-    if (toucheNum <= 2 ) {
-        CGPoint center = CGPointMake(CGRectGetMidX([touch.view bounds]), CGRectGetMidY([touch.view bounds]));
-        CGPoint currentPoint = [touch locationInView:touch.view];//当前手指的坐标
-        CGPoint previousPoint = [touch previousLocationInView:touch.view];//上一个坐标
-        CGFloat angle = atan2f(currentPoint.y - center.y, currentPoint.x - center.x) - atan2f(previousPoint.y - center.y, previousPoint.x - center.x);
-        CGAffineTransform _trans = self.rotationImageView.transform;
-        NSLog(@"角度是:%.2f",angle);
-        CGFloat rotate = acosf(_trans.a);
-        // 旋转180度后，需要处理弧度的变化
-        if (_trans.b < 0) {
-            rotate = M_PI -rotate;
-        }
-        // 将弧度转换为角度
-        CGFloat degree = rotate/M_PI * 180;
-
-        if(degree >= 80){
-            NSLog(@"--角度减小,degree:%.2f",degree);
-            if(degree <=120){
-                return;
-            }
-        }else{
-            NSLog(@"--角度增加,degree:%.2f",degree);
-            if(degree >= 50){
-                return;
-            }
-        }
-        
-        self.rotationImageView.transform = CGAffineTransformRotate(self.rotationImageView.transform, angle);
-        CGAffineTransform currentTrans = self.rotationImageView.transform;
-        CGFloat currentRotate = acosf(currentTrans.a);
-        // 旋转180度后，需要处理弧度的变化
-        if (_trans.b < 0) {
-            currentRotate = M_PI -currentRotate;
-        }
-        // 将弧度转换为角度
-        CGFloat currentDegree = rotate / M_PI * 180;
-        
+    //累加偏移的角度
+    self.addAngle += deteAngle;
+    //渐变累加角度超过60，或者当手指从一端划到对称的另一端，则是180度直接跳变，肯定会超过60的标准，直接给他还原最大或最小的极限----即无论是渐变还是跳变超过极限，都给他回位
+    if (self.addAngle > 60) {
+        self.addAngle = 60;
+        self.rotationImageView.transform = CGAffineTransformIdentity;
+        self.rotationImageView.transform = CGAffineTransformRotate(self.rotationImageView.transform,ToRad(self.addAngle));
+        return;
     }
+    if (self.addAngle < -60) {
+        self.addAngle = -60;
+        self.rotationImageView.transform = CGAffineTransformIdentity;
+        self.rotationImageView.transform = CGAffineTransformRotate(self.rotationImageView.transform,ToRad(self.addAngle));
+        return;
+    }
+    self.rotationImageView.transform = CGAffineTransformRotate(self.rotationImageView.transform,ToRad(deteAngle));
+    
 }
 
 -(void)touchesEnded:(NSSet<UITouch *> *)touches withEvent:(UIEvent *)event{
-    self.rotationImageView.transform =  CGAffineTransformIdentity;
+    self.deta_degree = 0;
+    self.tempAngle = 0;
+    self.rotationImageView.transform = CGAffineTransformIdentity;
 }
 
-
-
--(CGFloat)getDistance:(CGPoint)pointA withPointB:(CGPoint)pointB
-{
-    CGFloat x = pointA.x - pointB.x;
-    CGFloat y = pointA.y - pointB.y;
+-(CGFloat)detaDegreeWithX:(CGFloat)x Y:(CGFloat)y targetX:(CGFloat)targetX targetY:(CGFloat)targetY{
+    CGFloat detaX = targetX - x;
+    CGFloat detaY = targetY - y;
+    float d;
+    if (detaX != 0) {
+        CGFloat tan = atan(detaY / detaX);
+        
+        if (detaX > 0) {
+            d = tan;
+        } else {
+            d = M_PI + tan;
+        }
+        
+    } else {
+        d = 0;
+    }
     
-    return sqrt(x*x + y*y);
+    return (float)((d * 180) / M_PI);
+    
 }
 
--(CGFloat)getRadius:(CGPoint)pointA withPointB:(CGPoint)pointB
-{
-    CGFloat x = pointA.x - pointB.x;
-    CGFloat y = pointA.y - pointB.y;
-    return atan2(x, y);
-}
-
--(void)rotateSpeedoMeterNeedle:(CGFloat)speed{
-    [UIView animateWithDuration:0.5 animations:^{
-        self.speedImageView.transform = CGAffineTransformMakeRotation((M_PI/180) * speed);
-    }];
-}
-
--(void)rotateRPMNeedle:(CGFloat)speed{
-    [UIView animateWithDuration:0.5 animations:^{
-        self.rpmImageView.transform = CGAffineTransformMakeRotation((M_PI/180) * speed);
-    }];
-}
-
--(void)rotateFuelNeedle:(CGFloat)speed{
- 
-    [UIView animateWithDuration:0.5 animations:^{
-        self.fuelImageView.transform = CGAffineTransformMakeRotation((M_PI/180) * speed);
-    }];
-}
-
-
--(void)startFuelTimer{
-    self.fuelTimerCount = [NSTimer scheduledTimerWithTimeInterval:2 target:self selector:@selector(fulCount) userInfo:nil repeats:YES];
-}
-
--(void)fulCount{
-    self.fuelCount++;
-    if(self.fuelCount >= 150){
-        self.fuelCount = 25;
-    }
-    NSLog(@"fuelCoutn:%ld",self.fuelCount);
-    [self rotateFuelNeedle:self.fuelCount];
-}
-
--(void)startAddSpeedTimer{
-    self.speedTimerCount = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(speedAddCont) userInfo:nil repeats:YES];
-}
-
--(void)startMixSpeedTimer{
-    self.speedMixTimerCount = [NSTimer scheduledTimerWithTimeInterval:0.1 target:self selector:@selector(speedMixCont) userInfo:nil repeats:YES];
-}
-
--(void)speedAddCont{
-    self.speedCount += 3;
-    if(self.speedCount >=120)return;
-    [self rotateSpeedoMeterNeedle:self.speedCount];
-}
-
--(void)speedMixCont{
-    self.speedCount -= 3;
-    if(self.speedCount <= -127){
-        [self.speedMixTimerCount invalidate];
-        self.speedMixTimerCount = nil;
-        self.speedCount = -127;
-    }
-    [self rotateSpeedoMeterNeedle:self.speedCount];
-}
 @end
